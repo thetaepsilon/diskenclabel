@@ -1,0 +1,33 @@
+#!/bin/sh
+set -eu;
+
+magic="com.github.thetaepsilon.diskenclabel.v1"
+sep="    //    "
+
+
+
+arg_locator="$1";
+# check the locator falls within the allowed chars.
+# we restrict to alphanumeric, space dash for now so the structure remains easily parseable.
+check="$(echo "$arg_locator" | tr -d 'a-zA-Z0-9 -')";
+if test -n "$check"; then {
+	echo "# locator may only be alphanumeric, spaces or dashes." >&2;
+	exit 1;
+}; fi;
+locator="FOR: ${arg_locator}"
+
+# XXX: possibly changeable in future, but only on a whitelist basis.
+cipher="CIPHER: AES-XTS-PLAIN64"
+
+sectorsize="SECTOR-SIZE: 4096"
+
+#$(dd if=/dev/urandom bs=64 count=1 | od -An -tx1 -w8 | sed -e 's/^ /    /g' | tr -d '\n')"
+bytes_raw="$(od -An -tx1 -w8 -N64 < /dev/urandom)";
+# stupid posix shell pipeline errors...
+bytes_delimited="$(echo "$bytes_raw" | sed -e 's/^ /        /g')";
+bytes="$(echo "$bytes_delimited" | tr -d '\n')";
+key="KEY: $bytes";
+
+
+t="${magic}${sep}${cipher}${sep}${sectorsize}${sep}${locator}${sep}${key}"
+echo "$t";

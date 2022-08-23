@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu;
+
+locator="$1";
+
+format="${format:-png}";
+
+text="$(diskenclabel.raw "$locator")";
+
+exec qrencode -i -d 150 -t "$format" -s 8 -m 16 -o - "$text";
